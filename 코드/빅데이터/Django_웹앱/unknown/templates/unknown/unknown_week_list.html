@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href='{% static "css/unknown_list.css" %}'>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src='{% static "js/time.js" %}'></script>
+    <script src='{% static "js/modal.js" %}'></script>
+    <script src='{% static "js/search.js" %}'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.3.2/chart.min.js"></script>
+      <script src="https://code.highcharts.com/stock/highstock.js"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+
+    <div id="logo_area">
+        <div id="logo_img">
+            <img src='{% static "image/logo.png" %}'>
+        </div>
+    </div>
+<!--로고 끝-->
+    <div id="time">
+        <div id="time_area">
+                <a href="{% url 'unknown:index1' %}" class="time_sub" name="month">
+                    <div id="cal_month">
+                        <img src='{% static "image/calendar1.png" %}'>
+                        <span>Month</span>
+                    </div>
+                </a>
+                <a href="{% url 'unknown:index2' %}" class="time_sub" name="week">
+                    <div id="cal_week">
+                    <img src='{% static "image/calendar.png" %}'>
+                        <span style="color: #7456CA">Week</span>
+                    </div>
+                </a>
+                <a href="{% url 'unknown:index3' %}" class="time_sub" name="day">
+                    <div id="cal_today">
+                        <img src='{% static "image/calendar1.png" %}'>
+                        <span>Today</span>
+                    </div>
+                </a>
+            </div>
+    </div>
+
+
+    <div id="column_middle">
+        <div id="column_middle_pad">
+            <div id="unknown_list_box">
+                {% if Unknown_list %}
+                <ul id="unknown_list">
+                    {% for Unknown in Unknown_list %}
+                    <li class="unknown_post">
+                        <div class="unknown_post_area">
+                            <div class="unknown_img">
+                                <img src={{Unknown.url}}>
+                            </div>
+                            <div class="unknown_meta"><div class="unknown_meta_area"><div class="author_div"><div class="author">{{Unknown.unknown_count}}<span>회 방문</span></div><div class="time_text"><div class='visit'>최근 방문 : <br>{{Unknown.unknown_max}}</div></div></div>
+                            <div class="img_next"><div class="img_area"><img src='{% static "image/next.png" %}'></div></div>
+                            </div></div>
+
+                        </div>
+                        <div class="modal">
+                            <div class="modal_2">
+                                <div class="cls_button">
+                                    <img src='{% static "image/cancel1.png" %}'>
+                                </div>
+                                <div class="modal_title">
+                                    <div class="modal_text">
+                                        통계
+                                    </div>
+
+                                </div>
+                                <div class="modal_graph">
+   <div id="container">
+                                    <span class="del">{{Unknown.id}}</span>
+
+  <script >
+
+
+$(function(){
+    $('.unknown_post').on('click', function () {
+
+    function setChart() {
+      Highcharts.setOption({
+        global: {
+          useUTC: false
+        }
+      });
+    };
+        var index = $(this).index(".unknown_post");
+        var con_id = $('.modal_graph > div:nth-child(1)').eq(index).attr('id');
+
+        var name_t = $('#'+con_id+'>.del').text();
+
+        var aa = "http://192.168.0.33:8000/unknown/api/list_week/";
+        var cc = aa+name_t;
+
+    $.ajax({
+      url: cc,
+      dataType: 'json',
+      success: function (data) {
+
+        Highcharts.setOptions({
+          global: {
+            useUTC: false
+          }
+        });
+
+          Highcharts.chart(con_id, {
+          credits:{ enabled : false },
+          tooltip: { enabled: false },
+
+          chart: {
+            borderColor: '#DAD7D1',
+            borderWidth: 2,
+            type: 'line',
+            height: 400,
+            style: {
+                fontFamily: 'webisfree'
+            }
+          },
+
+
+          title: {
+            text: '이번주 방문 횟수',
+            style: {
+						fontSize: '2.5vh',
+						fontWeight: 'bold',
+					}
+          },
+
+          rangeSelector: {
+            selected: 5,
+            inputEnabled: false
+          },
+            rangeSelector:{
+             enabled:false
+            },
+            navigator: { enabled: false },
+            scrollbar: { enabled: false },
+
+           xAxis: {
+           type: 'datetime',
+            dateTimeLabelFormats: {
+                day: '%m/%d'
+              },
+              labels: {
+              style: {
+                fontSize: '1.7vh'
+              },
+            },
+            },
+
+
+          yAxis: {
+          title: {
+            text : '방문 횟수', },
+
+            allowDecimals: false,
+            labels: {
+              format: '{value}회',
+              style: {
+                color: 'rgba(0,0,0,.6)',
+                fontSize: '1.7vh'
+              },
+              x: 30,
+            },
+            opposite: false,
+            min: 0,
+          },
+
+
+
+        plotOptions: {
+                    line: {
+                    connectNulls: false
+                    },
+                    series: {
+                        pointStart: 0,
+                        dataLabels: {
+                            enabled: true,
+                            style: {
+                           fontSize: '1.3vh'
+                        },
+                            formatter: function(){
+                            if (this.y>0) {
+                            return this.y+ '회 방문';}  else {
+                            return null;}},
+
+                            borderRadius: 5,
+                            backgroundColor: 'white',
+                            borderWidth: 1,
+                            borderColor: '#AAA',
+                            y: -10
+
+                        },
+                    }
+                },
+          series: [{
+              showInLegend: false,
+              color:'#DEC2FF',
+              name: '주 방문 횟수',
+              data: data.close,
+              lineWidth: 3,
+                      states: {
+            hover: {
+                enabled: false
+            }
+        }
+          }],
+
+
+          responsive: {
+            rules: [{
+              condition: {
+                maxWidth: 600
+              },
+              chartOptions: {
+                chart: {
+                  height: 300
+                },
+                navigator: {
+                  enabled: false
+                }
+              }
+            }]
+          }
+        });
+      }
+    });
+
+    })
+})
+
+  </script>
+
+
+</div>
+
+
+<div id="time_container">
+<span class="del">{{Unknown.id}}</span>
+
+<script >
+$(function(){
+    $('.unknown_post').on('click', function () {
+
+    function setChart() {
+      Highcharts.setOption({
+        global: {
+          useUTC: false
+        }
+      });
+    };
+        var index = $(this).index(".unknown_post");
+        var time_con_id = $('.modal_graph > div:nth-child(2)').eq(index).attr('id');
+        var name_text = $('#'+time_con_id+'>.del').text();
+
+        var a = "http://192.168.0.33:8000/unknown/chart/month/";
+        var time_cc = a + name_text;
+
+    $.ajax({
+      url: time_cc,
+      dataType: 'json',
+      success: function (data) {
+
+        Highcharts.setOptions({
+          global: {
+            useUTC: false
+          }
+        });
+
+        Highcharts.chart(time_con_id, {
+          credits:{ enabled : false },
+          tooltip: { enabled: false },
+          chart: {
+            borderColor: '#DAD7D1',
+            borderWidth: 2,
+            type: 'line',
+            height: 400,
+            style: {
+                fontFamily: 'webisfree'
+            }
+          },
+
+          title: {
+            text: '방문 시간대',
+            style: {
+                  fontSize: '2.5vh',
+                  fontWeight: 'bold',
+               }
+          },
+
+           xAxis: {
+            allowDecimals: false,
+            min: 0,
+            max: 23,
+            tickInterval: 1,
+            showLastLabel: true,
+
+            labels: {
+            format: '{text}시',
+            style: { fontSize: '1.1vh' }
+            },
+            },
+
+          yAxis: {
+            title: {
+            text : '방문 횟수', },
+            allowDecimals: false,
+            labels: {
+              format: '{value}회',
+              style: {
+                color: 'rgba(0,0,0,.6)',
+                fontSize: '1.7vh'
+              },
+              x: 30,
+            },
+            opposite: false,
+            min: 0,
+          },
+
+
+            plotOptions: {
+            line: {
+            connectNulls: false
+            },
+            series: {
+                pointStart: 0,
+                dataLabels: {
+                    enabled: true,
+                    style: {
+                           fontSize: '1.3vh'
+                        },
+                    formatter: function(){
+                    if (this.y>0) {
+                    return this.x + '시 ' + this.y+ '회 방문';}  else {
+                    return null;}},
+
+                    borderRadius: 5,
+                    backgroundColor: 'white',
+                    borderWidth: 1,
+                    borderColor: '#AAA',
+                    y: -10
+
+                },
+            }
+        },
+          series: [{
+          showInLegend: false,
+            color:'#DEC2FF',
+              name: '시간별 방문 횟수',
+              data: data.count_week,
+              lineWidth: 3,
+                      states: {
+            hover: {
+                enabled: false
+            }
+        }
+          }],
+
+          responsive: {
+            rules: [{
+              condition: {
+                maxWidth: 600
+              },
+              chartOptions: {
+                chart: {
+                  height: 300
+                },
+                navigator: {
+                  enabled: false
+                }
+              }
+            }]
+          }
+        });
+      }
+    });
+
+    })
+});
+
+
+
+  </script>
+
+
+
+
+</div>
+
+                                </div>
+                                <div class="modal_text2">
+                                    방문 횟수 : {{Unknown.unknown_count}}
+                                </div>
+                                <div>
+
+                                </div>
+                                <div class="modal_btn">
+                                    <img src='{% static "image/add.png" %}'>
+
+                                </div>
+                                <div class="modal_sub">
+                                    <div class="modal_sub_area">
+                                        <div class="modal_sub_box">
+                                            <div class="cls_button_sub">
+                                                <img src='{% static "image/cancel1.png" %}'>
+                                                <span class="modal_sub_title">등록 <span class="modal_sub_content">등록시 이상자목록에서 제외됩니다.</span></span>
+
+                                            </div>
+                                            <div class="modal_sub_img">
+                                                <img src={{Unknown.url}}>
+                                                <form method="POST" action="{% url 'unknown:nickname' Unknown.id %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal_rename">
+                                                        <div class="modal_input_area">
+                                                        <input class="modal_rename_text" name="nickname" type="text" placeholder="이름을 입력하세요">
+                                                        <input class="modal_rename_submit" type="submit">
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </li><!--community_post끝-->
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>방문자가 없습니다.</p>
+            {% endif %}
+            </div>
+            <div id = 'unknown_page_number_area'>
+                <ul id="unknown_page_number">
+                    <!-- 이전페이지 출력-->
+                    {% if Unknown_list.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ Unknown_list.previous_page_number }}">이전</a>
+                    </li>
+                    <!-- ?page={{ question_list.previous_page_number }} : ? 변수=값 page=1 -->
+                    {% else %} <!-- 이전페이지가 없는 경우 -->
+                    <li class="page-item disabled">
+                        <a class="page-link" tabindex="-1" aria-disabled="true" href="#">이전</a>
+                    </li>
+                    {% endif %}
+
+                    <!-- 페이지리스트 -->
+                    {% for page_number in Unknown_list.paginator.page_range %} <!-- 총 페이지 번호만큼 for loop 실행 -->
+                    {% if page_number >= Unknown_list.number|add:-5 and page_number <= Unknown_list.number|add:5 %}
+                    <!-- 새로 구성될 페이지 번호가 현재페이지 기준으로 크면 5만큼 작은 값만 표시, 현재 페이지 기준으로 작으면 5만큼 큰 값만 표시 -->
+                        {% if page_number == Unknown_list.number %} <!-- 마지막 페이지 인지 여부 -->
+                        <li class="page-item active" aria-current="page">
+                            <a class="page-link" href="?page={{ page_number }}">{{ page_number }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_number }}">{{ page_number }}</a>
+                        </li>
+                        {% endif %}
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if Unknown_list.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ Unknown_list.next_page_number }}">다음</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" tabindex="-1" aria-disabled="true" href="#">다음</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
